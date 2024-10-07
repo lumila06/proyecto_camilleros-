@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Servicios</title>
+    <link rel="stylesheet" href="servis.css">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obtener todas las admisiones
+            fetch('http://localhost:8080/admissions')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Datos de admisiones:', data); // Para depurar y verificar datos
+
+                    if (data.error) {
+                        console.error('Error al obtener admisiones:', data.error);
+                        return;
+                    }
+
+                    if (data.length > 0) {
+                        const firstPatient = data[0]; // Selecciona el primer paciente o ajusta la lógica de selección
+
+                        // Autocompletar el formulario con los datos del paciente
+                        document.getElementById('first-name').value = firstPatient.nombre || '';
+                        document.getElementById('last-name').value = firstPatient.apellido || '';
+                        
+                        // Manejo del campo de género
+                        const genderSelect = document.getElementById('gender');
+                        const validGenders = ['male', 'female', 'other'];
+                        const genderValue = firstPatient.sexo || 'male'; // Valor por defecto
+                        if (validGenders.includes(genderValue)) {
+                            genderSelect.value = genderValue;
+                        } else {
+                            genderSelect.value = 'male'; // Valor por defecto
+                        }
+
+                        document.getElementById('dni').value = firstPatient.dni || '';
+                        document.getElementById('age').value = firstPatient.edad || '';
+                        document.getElementById('code').value = firstPatient.codigo || '';
+                        document.getElementById('location').value = firstPatient.ubicacion || '';
+                    }
+                })
+                .catch(error => console.error('Error al obtener admisiones:', error));
+
+            // Obtener los servicios disponibles
+            fetch('http://localhost:8080/services')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Datos de servicios:', data); // Para depurar y verificar datos
+
+                    const serviceSelect = document.getElementById('service');
+                    data.forEach(service => {
+                        const option = document.createElement('option');
+                        option.value = service.nombre; // Usamos el campo 'nombre' de la tabla servicios
+                        option.textContent = service.nombre; // Mostramos el nombre del servicio
+                        serviceSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error al obtener servicios:', error));
+        });
+
+        // Manejar el envío del formulario
+        function handleFormSubmit(event) {
+            event.preventDefault(); // Evitar recargar la página
+
+            // Crear el objeto payload con los datos del formulario
+            const payload = {
+                nombre: document.getElementById('first-name').value,
+                apellido: document.getElementById('last-name').value,
+                sexo: document.getElementById('gender').value,
+                dni: document.getElementById('dni').value,
+                edad: document.getElementById('age').value,
+                codigo: document.getElementById('code').value,
+                ubicacion: document.getElementById('location').value,
+                servicio: document.getElementById('service').value,
+                medio_transporte: document.getElementById('transport').value
+            };
+
+            // Mostrar un mensaje de carga mientras se envían los datos
+            alert('Enviando datos...');
+
+            fetch('http://localhost:8080/assign-service', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload),
+                mode: 'cors'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                } else {
+                    alert('Error al asignar el servicio.');
+                }
+            })
+            .catch(error => console.error('Error al asignar el servicio:', error));
+        }
+    </script>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Formulario de Servicios</h1>
+        <form id="admission-form" onsubmit="handleFormSubmit(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first-name">Nombre</label>
+                    <input type="text" id="first-name" name="first-name" placeholder="Nombre" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="last-name">Apellido</label>
+                    <input type="text" id="last-name" name="last-name" placeholder="Apellido" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="gender">Sexo</label>
+                    <select id="gender" name="gender" disabled>
+                        <option value="male">Masculino</option>
+                        <option value="female">Femenino</option>
+                        <option value="other">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dni">DNI</label>
+                    <input type="text" id="dni" name="dni" placeholder="DNI" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="age">Edad</label>
+                    <input type="number" id="age" name="age" placeholder="Edad" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="code">Código Paciente</label>
+                    <input type="text" id="code" name="code" placeholder="Código Paciente" readonly>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="location">Ubicación</label>
+                <input type="text" id="location" name="location" placeholder="Ubicación" readonly>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="service">Servicio</label>
+                    <select id="service" name="service" required>
+                        <option value="">Seleccione un servicio</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transport">Medio de Transporte</label>
+                    <select id="transport" name="transport" required>
+                        <option value="stretcher" selected>Camilla</option>
+                        <option value="wheelchair">Silla de ruedas</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">Enviar</button>
+        </form>
+    </div>
+</body>
+</html>

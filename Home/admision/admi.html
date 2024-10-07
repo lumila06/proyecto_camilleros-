@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Admisión</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+    <style>
+        .admission-container {
+            margin: 20px auto;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            border: 1px solid black;
+            margin-bottom: 20px;
+        }
+
+        .form-wrapper {
+            margin-top: 20px;
+        }
+
+        .form-field {
+            margin-bottom: 15px;
+        }
+
+        .submit-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app" class="admission-container">
+    <h1 class="text-center">Formulario de Admisión</h1>
+    <button @click="startScan" class="btn btn-primary btn-block">Escanear QR</button>
+    <video id="video"></video>
+
+    <form @submit.prevent="submitForm" class="form-wrapper">
+        <div class="form-group">
+            <label for="firstName">Nombre:</label>
+            <input type="text" v-model="patient.firstName" id="firstName" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="lastName">Apellido:</label>
+            <input type="text" v-model="patient.lastName" id="lastName" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="gender">Sexo:</label>
+            <select v-model="patient.gender" id="gender" class="form-control" required>
+                <option value="" disabled>Selecciona</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Femenino">Femenino</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="dni">DNI:</label>
+            <input type="text" v-model="patient.dni" id="dni" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="age">Edad:</label>
+            <input type="number" v-model="patient.age" id="age" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="code">Código:</label>
+            <input type="text" v-model="patient.code" id="code" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="location">Ubicación:</label>
+            <input type="text" v-model="patient.location" id="location" class="form-control" required>
+        </div>
+        <button type="submit" class="submit-btn btn btn-block">Enviar</button>
+        <div v-if="message" class="alert alert-success mt-3" role="alert">
+            {{ message }}
+        </div>
+    </form>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            scanning: false,
+            patient: {
+                firstName: '',
+                lastName: '',
+                gender: '',
+                dni: '',
+                age: null,
+                code: '',
+                location: ''
+            },
+            message: ''
+        },
+        methods: {
+            startScan() {
+                const video = document.getElementById('video');
+                this.scanning = true;
+                
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then((stream) => {
+                    video.srcObject = stream;
+                    video.setAttribute("playsinline", true);
+                    video.play();
+                    
+                    const tick = () => {
+                        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                            const canvasElement = document.createElement('canvas');
+                            const canvas = canvasElement.getContext('2d');
+                            canvasElement.height = video.videoHeight;
+                            canvasElement.width = video.videoWidth;
+                            canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                            
+                            const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                            const code = jsQR(imageData.data, imageData.width, imageData.height);
+                            
+                            if (code) {
+                                console.log("QR Code Data: ", code.data);
+                                this.fillFormFromQRCode(code.data);
+                                this.scanning = false;
+                                stream.getTracks().forEach(track => track.stop());
+                            } else {
+                                requestAnimationFrame(tick);
+                            }
+                        } else {
+                            requestAnimationFrame(tick);
+                        }
+                    };
+                    requestAnimationFrame(tick);
+                });
+            },
+            fillFormFromQRCode(data) {
+                try {
+                    const parsedData = JSON.parse(data);
+                    console.log("Parsed QR Data: ", parsedData);
+
+                    if (parsedData.firstName) this.patient.firstName = parsedData.firstName;
+                    if (parsedData.lastName) this.patient.lastName = parsedData.lastName;
+                    if (parsedData.gender) this.patient.gender = parsedData.gender;
+                    if (parsedData.dni) this.patient.dni = parsedData.dni;
+                    if (parsedData.age) this.patient.age = parsedData.age;
+                    if (parsedData.code) this.patient.code = parsedData.code;
+                    if (parsedData.location) this.patient.location = parsedData.location;
+
+                    console.log("Patient Data After Parsing: ", this.patient);
+                } catch (error) {
+                    console.error("Error al analizar el QR", error);
+                }
+            },
+            submitForm() {
+                console.log("Submitting form with data: ", this.patient);
+
+                fetch('http://127.0.0.1:8080/submit-admission', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(this.patient)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Response from backend: ", data);
+                    if (data.message) {
+                        this.message = data.message;
+                    } else if (data.error) {
+                        this.message = "Error: " + data.error;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    this.message = "Error al enviar los datos";
+                });
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
