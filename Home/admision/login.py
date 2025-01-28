@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import mysql.connector
 from flask import Flask, render_template
+import os
 
 app = Flask(__name__)
 
@@ -14,8 +15,8 @@ CORS(app)
 # Configuración de la base de datos
 
 db_config = {
-    'user': 'root',       
-    'password': '',  
+    'user': 'usario1',       
+    'password': '1234',  
     'host': '127.0.0.1',         
     'database': 'gestion'  
 }
@@ -45,10 +46,10 @@ def login():
 
     if user:
         if user['role'] == 'admisiones':
-            # Hacer algo específico para admisiones
+            
             pass
         elif user['role'] == 'servicios':
-            # Hacer algo específico para servicios
+          
             pass
         return jsonify(access_token='dummy_token', role=user['role']), 200
     else:

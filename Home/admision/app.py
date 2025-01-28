@@ -8,8 +8,8 @@ CORS(app, resources={r"/*": {"origins": "*"}})  # Permitir todos los orígenes
 
 # Configuración de la base de datos
 db_config = {
-    'user': 'root',
-    'password': '',
+    'user': 'usuario1',
+    'password': '1234',
     'host': '127.0.0.1',
     'database': 'gestion'
 }

@@ -2,16 +2,19 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import mysql.connector
 from mysql.connector import Error
+from datetime import datetime
+fecha_actual = datetime.now()
+
 
 app = Flask(__name__)
 
 # Configuración CORS para aceptar cualquier origen
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
 
 # Configuración de la base de datos
 db_config = {
-    'user': 'root',
-    'password': '',
+    'user': 'usuario1',
+   'password': '1234',
     'host': '127.0.0.1',
     'database': 'gestion'
 }
@@ -23,7 +26,6 @@ def get_all_admissions():
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor(dictionary=True)
         
-        # Selección de todos los campos de la tabla admisiones
         cursor.execute("SELECT nombre, apellido, sexo, dni, edad, codigo, ubicacion FROM admisiones")
         admissions = cursor.fetchall()
 
@@ -40,7 +42,6 @@ def get_services():
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor(dictionary=True)
         
-        # Selección del campo nombre de la tabla servicios
         cursor.execute("SELECT nombre FROM servicios")
         services = cursor.fetchall()
 
@@ -54,7 +55,6 @@ def get_services():
 @app.route('/assign-service', methods=['POST', 'OPTIONS'])
 def assign_service():
     if request.method == 'OPTIONS':
-        # Manejo de la solicitud preflight
         return '', 204
     
     data = request.get_json()
@@ -64,8 +64,8 @@ def assign_service():
         cursor = conn.cursor()
         
         query = """
-        INSERT INTO requerimientos (nombre, apellido, sexo, dni, edad, codigo, ubicacion, servicio, medio_transporte) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO requerimientos (nombre, apellido, sexo, dni, edad, codigo, ubicacion, servicio, medio_transporte, solicitante) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         values = (
             data['nombre'], 
@@ -76,7 +76,8 @@ def assign_service():
             data['codigo'], 
             data['ubicacion'], 
             data['servicio'], 
-            data['medio_transporte']
+            data['medio_transporte'], 
+            data['solicitante']
         )
 
         cursor.execute(query, values)

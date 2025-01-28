@@ -5,47 +5,207 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Camilleros</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            background-color: #004aad;
+            padding: 10px 20px;
+            color: white;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo img {
+            width: 150px;
+            height: auto;
+            margin-right: 10px;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #002d70;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+        }
+
+        .navbar ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            gap: 15px;
+            margin: 0;
+        }
+
+        .navbar button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: white;
+            color: #004aad;
+            border: 2px solid #004aad;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar button i {
+            font-size: 25px;
+        }
+
+        .navbar button:hover {
+            background-color: #004aad;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .main-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .content-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: 0.3s;
+        }
+
+        .card img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border-radius: 50%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .card:hover img {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .logout-btn {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 50px; /* Para mover el botón hacia abajo */
+        }
+
+        .logout-btn:hover {
+            background-color: #ff1a1a;
+            transform: scale(1.1);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 10px 20px;
+            background-color: #004aad;
+            color: white;
+        }
+    </style>
 </head>
 <body>
-    <!-- Sección Principal (Home) -->
-    <div id="home-section">
-        <header>
-            <div class="logo-container">
-                <img src="assets/gestion_salud.png" alt="Logo" class="logo">
-                <div class="logo-line"></div> <!-- Línea extendida -->
+    <div id="app">
+        <!-- Encabezado -->
+        <header class="header">
+            <div class="logo">
+                <img src="assets/gestion_salud.png" alt="Logo">
             </div>
         </header>
 
-        <section class="banner-video-section">
-            <video autoplay muted loop playsinline class="banner-video">
-                <source src="assets/video.mp4" type="video/mp4">
-                Tu navegador no soporta la reproducción de videos.
-            </video>
-        </section>
+        <!-- Menú de navegación -->
+        <nav class="navbar">
+            <ul>
+                <li><button @click="navigate('admi')"><i class="fas fa-user-plus"></i>Admisión</button></li>
+                <li><button @click="navigate('pacientes')"><i class="fas fa-users"></i>Pacientes</button></li>
+                <li><button @click="navigate('soporte')"><i class="fas fa-life-ring"></i>Soporte</button></li>
+            </ul>
+        </nav>
 
-        <section class="button-section">
-            <div class="buttons">
-                <button class="btn-custom" onclick="window.location.href='./admi.html'">
-                    <img src="https://img.icons8.com/color/96/000000/hospital-room.png" alt="Admisión Icon" class="button-icon">
-                    Admisión
-                </button>
-                
-                <button class="btn-custom">
-                    <img src="assets/7801005.png" alt="Pacientes Icon" class="button-icon">
-                    Pacientes
-                </button>
-                <button class="btn-custom">
-                    <img src="https://img.icons8.com/color/96/000000/support.png" alt="Soporte Icon" class="button-icon">
-                    Soporte
-                </button>
+        <!-- Contenido principal -->
+        <main class="main-content">
+            <div class="content-row">
+                <div class="card">
+                    <img src="assets/mision.jpg" alt="Imagen de Misión">
+                    <p>Comprometidos con un servicio seguro y eficiente.</p>
+                    <h3>Misión</h3>
+                </div>
+                <div class="card">
+                    <img src="assets/compromiso.png" alt="Imagen de Compromiso">
+                    <p>Fomentamos el bienestar del paciente.</p>
+                    <h3>Compromiso</h3>
+                </div>
+                <div class="card">
+                    <img src="assets/camillero.png" alt="Imagen de Camillero">
+                    <p>Apoyo esencial en la atención médica.</p>
+                    <h3>Camillero</h3>
+                </div>
             </div>
-        </section>
+
+            <!-- Botón de cerrar sesión -->
+            <button class="logout-btn" @click="logout"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 Gestión de Camilleros. Todos los derechos reservados.</p>
+        </footer>
     </div>
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2024 Gestión de Camilleros. Todos los derechos reservados.</p>
-    </footer>
+    <script>
+        const app = Vue.createApp({
+            methods: {
+                navigate(section) {
+                    const pages = {
+                        'admi': './admi.html',
+                        'pacientes': './pacientes.html',
+                        'soporte': './soporte.html'
+                    };
+                    window.location.href = pages[section];
+                },
+                logout() {
+                    alert("Sesión cerrada correctamente.");
+                    window.location.href = './login.html'; // Redirige a la página de inicio de sesión
+                }
+            }
+        });
+
+        app.mount('#app');
+    </script>
 </body>
 </html>

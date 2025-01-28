@@ -4,56 +4,194 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formulario de Servicios</title>
-    <link rel="stylesheet" href="servis.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1177bb;
+            margin: 0;
+            padding: 0;
+        }
+        .form-container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #004aad;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            display: table;
+        }
+        table th, table td {
+            padding: 20px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        table th {
+            background-color: #004aad;
+            color: white;
+        }
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            width: 48%;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .submit-btn {
+            background-color: #004aad;
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 5px;
+            width: 100%;
+            cursor: pointer;
+        }
+        .submit-btn:hover {
+            background-color: #003a7a;
+        }
+        .toggle-btn {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #004aad;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .toggle-btn:hover {
+            background-color: #003a7a;
+        }
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        /* Estilo para la notificación */
+#notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #28a745; /* Verde éxito */
+    color: white;
+    padding: 15px 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    opacity: 0;
+    transition: opacity 0.5s, transform 0.5s;
+    transform: translateY(-20px);
+}
+
+#notification.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.hidden {
+    display: none;
+}
+
+    </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const admissionsTableBody = document.getElementById('admissions-table-body');
+            const admissionsTable = document.getElementById('admissions-table');
+            const toggleButton = document.getElementById('toggle-table');
+            const searchInput = document.getElementById('search-input');
+
             // Obtener todas las admisiones
             fetch('http://localhost:8080/admissions')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    console.log('Datos de admisiones:', data); // Para depurar y verificar datos
-
-                    if (data.error) {
-                        console.error('Error al obtener admisiones:', data.error);
-                        return;
-                    }
-
-                    if (data.length > 0) {
-                        const firstPatient = data[0]; // Selecciona el primer paciente o ajusta la lógica de selección
-
-                        // Autocompletar el formulario con los datos del paciente
-                        document.getElementById('first-name').value = firstPatient.nombre || '';
-                        document.getElementById('last-name').value = firstPatient.apellido || '';
-                        
-                        // Manejo del campo de género
-                        const genderSelect = document.getElementById('gender');
-                        const validGenders = ['male', 'female', 'other'];
-                        const genderValue = firstPatient.sexo || 'male'; // Valor por defecto
-                        if (validGenders.includes(genderValue)) {
-                            genderSelect.value = genderValue;
-                        } else {
-                            genderSelect.value = 'male'; // Valor por defecto
-                        }
-
-                        document.getElementById('dni').value = firstPatient.dni || '';
-                        document.getElementById('age').value = firstPatient.edad || '';
-                        document.getElementById('code').value = firstPatient.codigo || '';
-                        document.getElementById('location').value = firstPatient.ubicacion || '';
-                    }
+                    data.forEach(admission => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${admission.nombre}</td>
+                            <td>${admission.apellido}</td>
+                            <td>${admission.sexo}</td>
+                            <td>${admission.dni}</td>
+                            <td>${admission.edad}</td>
+                            <td>${admission.codigo}</td>
+                            <td>${admission.ubicacion}</td>
+                        `;
+                        row.addEventListener('dblclick', function() {
+                            document.getElementById('first-name').value = admission.nombre;
+                            document.getElementById('last-name').value = admission.apellido;
+                            document.getElementById('gender').value = admission.sexo;
+                            document.getElementById('dni').value = admission.dni;
+                            document.getElementById('age').value = admission.edad;
+                            document.getElementById('code').value = admission.codigo;
+                            document.getElementById('location').value = admission.ubicacion;
+                        });
+                        admissionsTableBody.appendChild(row);
+                    });
                 })
                 .catch(error => console.error('Error al obtener admisiones:', error));
 
+            // Toggle table visibility
+            toggleButton.addEventListener('click', function() {
+                if (admissionsTable.style.display === 'none' || admissionsTable.style.display === '') {
+                    admissionsTable.style.display = 'table';
+                    toggleButton.textContent = 'Ocultar Grilla';
+                } else {
+                    admissionsTable.style.display = 'none';
+                    toggleButton.textContent = 'Mostrar Grilla';
+                }
+            });
+
+            // Search functionality
+            searchInput.addEventListener('input', function() {
+                const filter = searchInput.value.toLowerCase();
+                const rows = admissionsTableBody.getElementsByTagName('tr');
+                Array.from(rows).forEach(row => {
+                    const cells = row.getElementsByTagName('td');
+                    const match = Array.from(cells).some(cell => cell.textContent.toLowerCase().includes(filter));
+                    row.style.display = match ? '' : 'none';
+                });
+            });
+
             // Obtener los servicios disponibles
             fetch('http://localhost:8080/services')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    console.log('Datos de servicios:', data); // Para depurar y verificar datos
-
                     const serviceSelect = document.getElementById('service');
                     data.forEach(service => {
                         const option = document.createElement('option');
-                        option.value = service.nombre; // Usamos el campo 'nombre' de la tabla servicios
-                        option.textContent = service.nombre; // Mostramos el nombre del servicio
+                        option.value = service.nombre;
+                        option.textContent = service.nombre;
                         serviceSelect.appendChild(option);
                     });
                 })
@@ -64,7 +202,6 @@
         function handleFormSubmit(event) {
             event.preventDefault(); // Evitar recargar la página
 
-            // Crear el objeto payload con los datos del formulario
             const payload = {
                 nombre: document.getElementById('first-name').value,
                 apellido: document.getElementById('last-name').value,
@@ -74,11 +211,9 @@
                 codigo: document.getElementById('code').value,
                 ubicacion: document.getElementById('location').value,
                 servicio: document.getElementById('service').value,
-                medio_transporte: document.getElementById('transport').value
+                medio_transporte: document.getElementById('transport').value,
+                solicitante: document.getElementById('requester').value
             };
-
-            // Mostrar un mensaje de carga mientras se envían los datos
-            alert('Enviando datos...');
 
             fetch('http://localhost:8080/assign-service', {
                 method: 'POST',
@@ -88,7 +223,12 @@
                 body: JSON.stringify(payload),
                 mode: 'cors'
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.message) {
                     alert(data.message);
@@ -98,62 +238,140 @@
             })
             .catch(error => console.error('Error al asignar el servicio:', error));
         }
+        document.querySelector('#serviceForm').addEventListener('submit', async (e) => {
+    e.preventDefault(); // Evita la recarga de la página
+
+    const form = e.target;
+    const formData = new FormData(form); // Recoge los datos del formulario
+
+    try {
+        // Enviar los datos al servidor
+        const response = await fetch('/ruta/del/endpoint', {
+            method: 'POST',
+            body: formData,
+        });
+
+        // Verifica la respuesta del servidor
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                mostrarNotificacion('Servicio asignado con éxito');
+            } else {
+                mostrarNotificacion('Error al asignar el servicio', true);
+            }
+        } else {
+            mostrarNotificacion('Error en el servidor', true);
+        }
+    } catch (error) {
+        mostrarNotificacion('Error al procesar la solicitud', true);
+    }
+});
+
+function mostrarNotificacion(mensaje, esError = false) {
+    const notification = document.getElementById('notification');
+
+    // Configura el mensaje y el color según el tipo de notificación
+    notification.textContent = mensaje;
+    notification.style.backgroundColor = esError ? '#dc3545' : '#28a745'; // Rojo o verde
+    notification.classList.remove('hidden');
+    notification.classList.add('visible');
+
+    // Oculta automáticamente después de 3 segundos
+    setTimeout(() => {
+        notification.classList.remove('visible');
+        setTimeout(() => {
+            notification.classList.add('hidden');
+        }, 500); // Esperar a que termine la animación
+    }, 3000);
+}
+
     </script>
 </head>
 <body>
     <div class="form-container">
         <h1>Formulario de Servicios</h1>
-        <form id="admission-form" onsubmit="handleFormSubmit(event)">
+
+        <button id="toggle-table" class="toggle-btn">Ocultar Grilla</button>
+        <input type="text" id="search-input" class="search-input" placeholder="Buscar paciente...">
+
+        <!-- Tabla para mostrar las admisiones -->
+        <table id="admissions-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Sexo</th>
+                    <th>DNI</th>
+                    <th>Edad</th>
+                    <th>Código</th>
+                    <th>Ubicación</th>
+                </tr>
+            </thead>
+            <tbody id="admissions-table-body"></tbody>
+        </table>
+
+        <form onsubmit="handleFormSubmit(event)">
             <div class="form-row">
                 <div class="form-group">
                     <label for="first-name">Nombre</label>
-                    <input type="text" id="first-name" name="first-name" placeholder="Nombre" readonly>
+                    <input type="text" id="first-name" required>
                 </div>
                 <div class="form-group">
                     <label for="last-name">Apellido</label>
-                    <input type="text" id="last-name" name="last-name" placeholder="Apellido" readonly>
+                    <input type="text" id="last-name" required>
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label for="gender">Sexo</label>
-                    <select id="gender" name="gender" disabled>
-                        <option value="male">Masculino</option>
-                        <option value="female">Femenino</option>
-                        <option value="other">Otro</option>
+                    <select id="gender" required>
+                        <option value="">Seleccione</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="dni">DNI</label>
-                    <input type="text" id="dni" name="dni" placeholder="DNI" readonly>
+                    <input type="text" id="dni" required>
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label for="age">Edad</label>
-                    <input type="number" id="age" name="age" placeholder="Edad" readonly>
+                    <input type="number" id="age" required>
                 </div>
                 <div class="form-group">
-                    <label for="code">Código Paciente</label>
-                    <input type="text" id="code" name="code" placeholder="Código Paciente" readonly>
+                    <label for="code">Código</label>
+                    <input type="text" id="code" required>
                 </div>
-            </div>
-            <div class="form-group">
-                <label for="location">Ubicación</label>
-                <input type="text" id="location" name="location" placeholder="Ubicación" readonly>
             </div>
             <div class="form-row">
                 <div class="form-group">
+                    <label for="location">Ubicación</label>
+                    <input type="text" id="location" required>
+                </div>
+                <div class="form-group">
                     <label for="service">Servicio</label>
-                    <select id="service" name="service" required>
+                    <select id="service" required>
                         <option value="">Seleccione un servicio</option>
                     </select>
                 </div>
+            </div>
+            <div class="form-row">
                 <div class="form-group">
-                    <label for="transport">Medio de Transporte</label>
-                    <select id="transport" name="transport" required>
-                        <option value="stretcher" selected>Camilla</option>
-                        <option value="wheelchair">Silla de ruedas</option>
+                    <label for="service">Medio de Transporte</label>
+                    <select id="transport" required>
+                        <option value="">Seleccione</option>
+                        <option value="Camilla">Camilla</option>
+                        <option value="Silla de Ruedas">Silla de Ruedas</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="service">Solicitante</label>
+                    <select id="requester" required>
+                        <option value="">Seleccione</option>
+                        <option value="Doctor">Doctor</option>
+                        <option value="Enfermera/o">Enfermera/o</option>
                     </select>
                 </div>
             </div>

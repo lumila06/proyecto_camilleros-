@@ -10,12 +10,12 @@ def home():
     return render_template('1.login.html')
 
 app = Flask(__name__)
-CORS(app)  
+CORS(app)    
 # Configuración de la base de datos
 
 db_config = {
-    'user': 'root',       
-    'password': '',  
+    'user': 'usuario1',       
+    'password': '1234',  
     'host': '127.0.0.1',         
     'database': 'gestion'  
 }
